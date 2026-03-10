@@ -93,6 +93,10 @@ body {
   background: #a0a0a0;
 }
 
+.cell.losing-mine {
+  background: red;
+}
+
 .n1 { color: blue; }
 .n2 { color: green; }
 .n3 { color: red; }

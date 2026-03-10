@@ -256,61 +256,79 @@ function clearHighlights() {
 document.querySelectorAll('.cell.highlighted').forEach(el => el.classList.remove('highlighted'));
 }
 
-/***********************
-* GAME LOGIC
-***********************/
 function handleReveal(r, c) {
-const cell = grid[r][c];
+    const cell = grid[r][c];
 
-if (cell.revealed && cell.count > 0) {
-    // Clicking on a revealed number
-    const neigh = neighbors(r, c);
-    const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
+    // 👉 Clic sur un nombre déjà révélé = chord
+    if (cell.revealed && cell.count > 0) {
+        const neigh = neighbors(r, c);
+        const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
 
-    if (flagCount === cell.count) {
-        // Reveal all unflagged neighbors without cascade
+        // Règle officielle : chord seulement si nb de drapeaux = chiffre
+        if (flagCount !== cell.count) return;
+
         let revealedAny = false;
+
         neigh.forEach(([nr, nc]) => {
-            if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
-                grid[nr][nc].revealed = true;
-                grid[nr][nc].el.classList.add("revealed");
-                if (grid[nr][nc].count > 0) {
-                    grid[nr][nc].el.textContent = grid[nr][nc].count;
-                    grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
+            const ncell = grid[nr][nc];
+
+            if (!ncell.flagged && !ncell.revealed) {
+
+                // 💥 Bombe non drapeautée → explosion
+                if (ncell.isMine) {
+                    // Mark all mines around the number as losing-mine
+                    neigh.forEach(([nnr, nnc]) => {
+                        if (grid[nnr][nnc].isMine) {
+                            grid[nnr][nnc].el.classList.add("losing-mine");
+                        }
+                    });
+                    ncell.revealed = true;
+                    ncell.el.classList.add("revealed");
+                    ncell.el.classList.add("losing-mine");
+
+                    revealAllMines();
+                    smiley.textContent = "😵";
+                    playSound("boom");
+                    clearInterval(timer);
+                    gameOver = true;
+                    return;
                 }
+
+                // 👉 Case sûre
+                reveal(nr, nc);
                 revealedAny = true;
-                // No cascade
             }
         });
-        if (revealedAny) playSound("click");
-         checkWin();
+
+        if (!gameOver && revealedAny) playSound("click");
+        if (!gameOver) checkWin();
+        return;
     }
-    // If flagCount < count, do nothing (highlight was shown on mousedown)
-    return;
-}
 
-if (gameOver || cell.flagged || cell.revealed) return;
+    // 👉 Le reste de handleReveal reste inchangé
+    if (gameOver || cell.flagged || cell.revealed) return;
 
-if (firstClick) {
-placeMines(r, c);
-timer = setInterval(() => {
-time++;
-timeCounterEl.textContent = time.toString().padStart(3, "0");
-}, 1000);
-firstClick = false;
-}
+    if (firstClick) {
+        placeMines(r, c);
+        timer = setInterval(() => {
+            time++;
+            timeCounterEl.textContent = time.toString().padStart(3, "0");
+        }, 1000);
+        firstClick = false;
+    }
 
-if (cell.isMine) {
-revealAllMines();
-smiley.textContent = "😵"
-playSound("boom");
-clearInterval(timer);
-gameOver = true;
-return;
-}
+    if (cell.isMine) {
+        cell.el.classList.add("losing-mine");
+        revealAllMines();
+        smiley.textContent = "😵";
+        playSound("boom");
+        clearInterval(timer);
+        gameOver = true;
+        return;
+    }
 
-reveal(r, c);
-playSound("click");
+    reveal(r, c);
+    playSound("click");
 }
 
 function reveal(r, c) {
@@ -342,38 +360,50 @@ playSound("flag");
 }
 
 function chord(r, c) {
-const cell = grid[r][c];
-if (gameOver || !cell.revealed || cell.count === 0) return;
+    const cell = grid[r][c];
+    if (gameOver || !cell.revealed || cell.count === 0) return;
 
-const neigh = neighbors(r, c);
-const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
+    const neigh = neighbors(r, c);
+    const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
 
-if (flagCount === cell.count) {
+    // Règle officielle : chord seulement si nb de drapeaux = chiffre
+    if (flagCount !== cell.count) return;
+
     let revealedAny = false;
+
     neigh.forEach(([nr, nc]) => {
-        if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
-            if (grid[nr][nc].isMine) {
-                // game over via chord
+        const ncell = grid[nr][nc];
+
+        if (!ncell.flagged && !ncell.revealed) {
+
+            // 💥 Bombe non drapeautée → explosion
+            if (ncell.isMine) {
+                // Mark all mines around the number as losing-mine
+                neigh.forEach(([nnr, nnc]) => {
+                    if (grid[nnr][nnc].isMine) {
+                        grid[nnr][nnc].el.classList.add("losing-mine");
+                    }
+                });
+                ncell.revealed = true;
+                ncell.el.classList.add("revealed");
+                ncell.el.classList.add("losing-mine");
+
                 revealAllMines();
                 smiley.textContent = "😵";
                 playSound("boom");
                 clearInterval(timer);
                 gameOver = true;
-            } else {
-                grid[nr][nc].revealed = true;
-                grid[nr][nc].el.classList.add("revealed");
-                if (grid[nr][nc].count > 0) {
-                    grid[nr][nc].el.textContent = grid[nr][nc].count;
-                    grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
-                }
-                revealedAny = true;
-                // No cascade for chord
+                return;
             }
+
+            // 👉 Case sûre
+            reveal(nr, nc);
+            revealedAny = true;
         }
     });
-    if (revealedAny) playSound("click");
-    checkWin();
-}
+
+    if (!gameOver && revealedAny) playSound("click");
+    if (!gameOver) checkWin();
 }
 
 /***********************
