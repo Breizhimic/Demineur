@@ -30,6 +30,9 @@ const modal = document.getElementById("optionsModal");
 const openOptionsBtn = document.getElementById("openOptions");
 const closeOptionsBtn = document.getElementById("closeOptions");
 
+const winModal = document.getElementById("winModal");
+const closeWinBtn = document.getElementById("closeWin");
+
 const zoomInBtn = document.getElementById("zoomIn");
 const zoomOutBtn = document.getElementById("zoomOut");
 
@@ -68,6 +71,8 @@ sounds[name].play();
 ***********************/
 openOptionsBtn.onclick = () => modal.classList.remove("hidden");
 closeOptionsBtn.onclick = () => modal.classList.add("hidden");
+
+closeWinBtn.onclick = () => winModal.classList.add("hidden");
 
 document.getElementById("soundEnabled").checked = settings.sound.enabled;
 document.getElementById("soundVolume").value = settings.sound.volume * 100;
