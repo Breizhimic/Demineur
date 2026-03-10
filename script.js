@@ -55,7 +55,7 @@ const DENSITY = 0.2;
 const sounds = {
 click: new Audio("sounds/click.wav"),
 flag: new Audio("sounds/flag.wav"),
-boom: new Audio("sounds/boom.wav"),
+boom: new Audio("sounds/bomb.wav"),    // fichier s'appelle bomb.wav dans le dossier
 win: new Audio("sounds/win.wav")
 };
 
@@ -345,16 +345,24 @@ const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
 if (flagCount === cell.count) {
     neigh.forEach(([nr, nc]) => {
         if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
-            grid[nr][nc].revealed = true;
-            grid[nr][nc].el.classList.add("revealed");
-            if (grid[nr][nc].count > 0) {
-                grid[nr][nc].el.textContent = grid[nr][nc].count;
-                grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
+            if (grid[nr][nc].isMine) {
+                // game over via chord
+                revealAllMines();
+                smiley.textContent = "😵";
+                playSound("boom");
+                clearInterval(timer);
+            } else {
+                grid[nr][nc].revealed = true;
+                grid[nr][nc].el.classList.add("revealed");
+                if (grid[nr][nc].count > 0) {
+                    grid[nr][nc].el.textContent = grid[nr][nc].count;
+                    grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
+                }
+                // No cascade for chord
             }
-            // No cascade for chord
         }
     });
-     checkWin();
+    checkWin();
 }
 }
 
