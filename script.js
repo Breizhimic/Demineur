@@ -278,6 +278,7 @@ if (cell.revealed && cell.count > 0) {
                 // No cascade
             }
         });
+         checkWin();
     }
     // If flagCount < count, do nothing (highlight was shown on mousedown)
     return;
@@ -307,18 +308,20 @@ playSound("click");
 }
 
 function reveal(r, c) {
-const cell = grid[r][c];
-if (cell.revealed || cell.flagged) return;
+    const cell = grid[r][c];
+    if (cell.revealed || cell.flagged) return;
 
-cell.revealed = true;
-cell.el.classList.add("revealed");
+    cell.revealed = true;
+    cell.el.classList.add("revealed");
 
-if (cell.count > 0) {
-cell.el.textContent = cell.count;
-cell.el.classList.add(`n${cell.count}`);
-} else {
-neighbors(r, c).forEach(([nr, nc]) => reveal(nr, nc));
-}
+    if (cell.count > 0) {
+        cell.el.textContent = cell.count;
+        cell.el.classList.add(`n${cell.count}`);
+    } else {
+        neighbors(r, c).forEach(([nr, nc]) => reveal(nr, nc));
+    }
+
+    checkWin(); // 👉 AJOUT ICI
 }
 
 function toggleFlag(r, c) {
@@ -351,12 +354,34 @@ if (flagCount === cell.count) {
             // No cascade for chord
         }
     });
+     checkWin();
 }
 }
 
 /***********************
 * MINES & HELPERS
 ***********************/
+function checkWin() {
+    let revealedSafe = 0;
+    const totalSafe = rows * cols - mines;
+
+    for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+            const cell = grid[r][c];
+            if (cell.revealed && !cell.isMine) {
+                revealedSafe++;
+            }
+        }
+    }
+
+    if (revealedSafe === totalSafe) {
+        clearInterval(timer);
+        smiley.textContent = "😎";
+        playSound("win");
+        winModal.classList.remove("hidden");
+    }
+}
+
 function placeMines(exR, exC) {
     let valid = false;
 
