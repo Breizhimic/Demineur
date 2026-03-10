@@ -30,9 +30,13 @@ const modal = document.getElementById("optionsModal");
 const openOptionsBtn = document.getElementById("openOptions");
 const closeOptionsBtn = document.getElementById("closeOptions");
 
+const zoomInBtn = document.getElementById("zoomIn");
+const zoomOutBtn = document.getElementById("zoomOut");
+
 /***********************
 * GAME STATE
 ***********************/
+let zoom = 1;
 let grid = [];
 let rows = 16, cols = 16, mines = 40;
 let flags = 0;
@@ -103,6 +107,22 @@ applyGestureProfile(
 settings.gestures.longPress === "flag" ? "profile2" : "profile1"
 );
 
+zoomInBtn.onclick = () => {
+  zoom = Math.min(zoom + 0.1, 3);
+  updateZoom();
+};
+
+zoomOutBtn.onclick = () => {
+  zoom = Math.max(zoom - 0.1, 0.3);
+  updateZoom();
+};
+
+function updateZoom() {
+  boardEl.style.transform = `scale(${zoom})`;
+  boardEl.style.transformOrigin = "top left";
+}
+
+
 /***********************
 * PRESETS
 ***********************/
@@ -156,6 +176,7 @@ grid[r][c] = cell;
 attachEvents(r, c);
 }
 }
+updateZoom();
 }
 
 /***********************
@@ -280,21 +301,40 @@ if (!grid[nr][nc].flagged) handleReveal(nr, nc);
 * MINES & HELPERS
 ***********************/
 function placeMines(exR, exC) {
-let placed = 0;
-while (placed < mines) {
-const r = Math.floor(Math.random() * rows);
-const c = Math.floor(Math.random() * cols);
-if ((r === exR && c === exC) || grid[r][c].isMine) continue;
-grid[r][c].isMine = true;
-placed++;
-}
+    let valid = false;
 
-for (let r = 0; r < rows; r++) {
-for (let c = 0; c < cols; c++) {
-grid[r][c].count = neighbors(r, c)
-.filter(([nr, nc]) => grid[nr][nc].isMine).length;
-}
-}
+    while (!valid) {
+        // 1. Réinitialiser toutes les cases
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                grid[r][c].isMine = false;
+                grid[r][c].count = 0;
+            }
+        }
+
+        // 2. Placer les mines (en évitant la case du premier clic)
+        let placed = 0;
+        while (placed < mines) {
+            const r = Math.floor(Math.random() * rows);
+            const c = Math.floor(Math.random() * cols);
+            if ((r === exR && c === exC) || grid[r][c].isMine) continue;
+            grid[r][c].isMine = true;
+            placed++;
+        }
+
+        // 3. Calculer les nombres
+        for (let r = 0; r < rows; r++) {
+            for (let c = 0; c < cols; c++) {
+                grid[r][c].count = neighbors(r, c)
+                    .filter(([nr, nc]) => grid[nr][nc].isMine).length;
+            }
+        }
+
+        // 4. Vérifier si la case cliquée est un 0
+        if (grid[exR][exC].count === 0) {
+            valid = true;
+        }
+    }
 }
 
 function neighbors(r, c) {
