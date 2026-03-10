@@ -86,7 +86,7 @@ body {
 .cell.revealed {
   background: #bdbdbd;
   /* lighter, thinner border for revealed cells only */
-  border: 0.1px solid #686868;
+  border: 0.1px solid #7b7b7b;
 }
 
 .cell.highlighted {
