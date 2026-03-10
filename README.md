@@ -1,3 +1,1 @@
-# Demineur
-
-https://github.com/Breizhimic/Demineur.git
+https://breizhimic.github.io/Demineur/
