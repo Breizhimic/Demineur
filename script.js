@@ -46,6 +46,7 @@ let flags = 0;
 let firstClick = true;
 let timer = null;
 let time = 0;
+let gameOver = false; // added flag to prevent actions after end
 
 const DENSITY = 0.2;
 
@@ -153,6 +154,7 @@ clearInterval(timer);
 time = 0;
 flags = 0;
 firstClick = true;
+gameOver = false; // allow new interactions
 
 timeCounterEl.textContent = "000"
 mineCounterEl.textContent = mines.toString().padStart(3, "0");
@@ -284,7 +286,7 @@ if (cell.revealed && cell.count > 0) {
     return;
 }
 
-if (cell.flagged || cell.revealed) return;
+if (gameOver || cell.flagged || cell.revealed) return;
 
 if (firstClick) {
 placeMines(r, c);
@@ -300,6 +302,7 @@ revealAllMines();
 smiley.textContent = "😵"
 playSound("boom");
 clearInterval(timer);
+gameOver = true;
 return;
 }
 
@@ -337,7 +340,7 @@ playSound("flag");
 
 function chord(r, c) {
 const cell = grid[r][c];
-if (!cell.revealed || cell.count === 0) return;
+if (gameOver || !cell.revealed || cell.count === 0) return;
 
 const neigh = neighbors(r, c);
 const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
@@ -351,6 +354,7 @@ if (flagCount === cell.count) {
                 smiley.textContent = "😵";
                 playSound("boom");
                 clearInterval(timer);
+                gameOver = true;
             } else {
                 grid[nr][nc].revealed = true;
                 grid[nr][nc].el.classList.add("revealed");
@@ -387,6 +391,7 @@ function checkWin() {
         smiley.textContent = "😎";
         playSound("win");
         winModal.classList.remove("hidden");
+        gameOver = true;
     }
 }
 
