@@ -269,6 +269,7 @@ if (cell.revealed && cell.count > 0) {
 
     if (flagCount === cell.count) {
         // Reveal all unflagged neighbors without cascade
+        let revealedAny = false;
         neigh.forEach(([nr, nc]) => {
             if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
                 grid[nr][nc].revealed = true;
@@ -277,9 +278,11 @@ if (cell.revealed && cell.count > 0) {
                     grid[nr][nc].el.textContent = grid[nr][nc].count;
                     grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
                 }
+                revealedAny = true;
                 // No cascade
             }
         });
+        if (revealedAny) playSound("click");
          checkWin();
     }
     // If flagCount < count, do nothing (highlight was shown on mousedown)
@@ -346,6 +349,7 @@ const neigh = neighbors(r, c);
 const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
 
 if (flagCount === cell.count) {
+    let revealedAny = false;
     neigh.forEach(([nr, nc]) => {
         if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
             if (grid[nr][nc].isMine) {
@@ -362,10 +366,12 @@ if (flagCount === cell.count) {
                     grid[nr][nc].el.textContent = grid[nr][nc].count;
                     grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
                 }
+                revealedAny = true;
                 // No cascade for chord
             }
         }
     });
+    if (revealedAny) playSound("click");
     checkWin();
 }
 }
