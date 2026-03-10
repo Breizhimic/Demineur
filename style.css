@@ -83,8 +83,12 @@ body {
 }
 
 .cell.revealed {
-  background: #bdbdbd;
+  background: #e0e0e0;
   border: 1px solid #7b7b7b;
+}
+
+.cell.highlighted {
+  background: #a0a0a0;
 }
 
 .n1 { color: blue; }
@@ -116,3 +120,4 @@ body {
   overflow: auto;        /* pour scroller si la grille est grande */
   position: relative;
 }
+

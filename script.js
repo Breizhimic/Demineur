@@ -189,6 +189,21 @@ let longPressTimer = null;
 
 const el = grid[r][c].el;
 
+el.addEventListener("mousedown", () => {
+    if (grid[r][c].revealed && grid[r][c].count > 0) {
+        const neigh = neighbors(r, c);
+        const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
+        if (flagCount < grid[r][c].count) {
+            const unrevealedUnflagged = neigh.filter(([nr, nc]) => !grid[nr][nc].revealed && !grid[nr][nc].flagged);
+            unrevealedUnflagged.forEach(([nr, nc]) => grid[nr][nc].el.classList.add('highlighted'));
+        }
+    }
+});
+
+el.addEventListener("mouseup", () => {
+    clearHighlights();
+});
+
 el.addEventListener("click", () => handleAction("reveal", r, c));
 
 el.addEventListener("contextmenu", e => {
@@ -224,9 +239,14 @@ tapCount = 0;
 }
 
 function handleAction(action, r, c) {
+clearHighlights();
 if (action === "reveal") handleReveal(r, c);
 if (action === "flag") toggleFlag(r, c);
 if (action === "chord") chord(r, c);
+}
+
+function clearHighlights() {
+document.querySelectorAll('.cell.highlighted').forEach(el => el.classList.remove('highlighted'));
 }
 
 /***********************
@@ -234,6 +254,30 @@ if (action === "chord") chord(r, c);
 ***********************/
 function handleReveal(r, c) {
 const cell = grid[r][c];
+
+if (cell.revealed && cell.count > 0) {
+    // Clicking on a revealed number
+    const neigh = neighbors(r, c);
+    const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
+
+    if (flagCount === cell.count) {
+        // Reveal all unflagged neighbors without cascade
+        neigh.forEach(([nr, nc]) => {
+            if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
+                grid[nr][nc].revealed = true;
+                grid[nr][nc].el.classList.add("revealed");
+                if (grid[nr][nc].count > 0) {
+                    grid[nr][nc].el.textContent = grid[nr][nc].count;
+                    grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
+                }
+                // No cascade
+            }
+        });
+    }
+    // If flagCount < count, do nothing (highlight was shown on mousedown)
+    return;
+}
+
 if (cell.flagged || cell.revealed) return;
 
 if (firstClick) {
@@ -291,9 +335,17 @@ const neigh = neighbors(r, c);
 const flagCount = neigh.filter(([nr, nc]) => grid[nr][nc].flagged).length;
 
 if (flagCount === cell.count) {
-neigh.forEach(([nr, nc]) => {
-if (!grid[nr][nc].flagged) handleReveal(nr, nc);
-});
+    neigh.forEach(([nr, nc]) => {
+        if (!grid[nr][nc].flagged && !grid[nr][nc].revealed) {
+            grid[nr][nc].revealed = true;
+            grid[nr][nc].el.classList.add("revealed");
+            if (grid[nr][nc].count > 0) {
+                grid[nr][nc].el.textContent = grid[nr][nc].count;
+                grid[nr][nc].el.classList.add(`n${grid[nr][nc].count}`);
+            }
+            // No cascade for chord
+        }
+    });
 }
 }
 
