@@ -304,7 +304,8 @@ function placeMines(exR, exC) {
     let valid = false;
 
     while (!valid) {
-        // 1. Réinitialiser toutes les cases
+
+        // 1. Reset
         for (let r = 0; r < rows; r++) {
             for (let c = 0; c < cols; c++) {
                 grid[r][c].isMine = false;
@@ -312,14 +313,19 @@ function placeMines(exR, exC) {
             }
         }
 
-        // 2. Placer les mines (en évitant la case du premier clic)
+        // 2. Placer les mines en évitant une zone 5×5 autour du clic
         let placed = 0;
         while (placed < mines) {
             const r = Math.floor(Math.random() * rows);
             const c = Math.floor(Math.random() * cols);
-            if ((r === exR && c === exC) || grid[r][c].isMine) continue;
-            grid[r][c].isMine = true;
-            placed++;
+
+            // Zone interdite : carré 5×5 centré sur le clic
+            if (Math.abs(r - exR) <= 2 && Math.abs(c - exC) <= 2) continue;
+
+            if (!grid[r][c].isMine) {
+                grid[r][c].isMine = true;
+                placed++;
+            }
         }
 
         // 3. Calculer les nombres
@@ -330,7 +336,7 @@ function placeMines(exR, exC) {
             }
         }
 
-        // 4. Vérifier si la case cliquée est un 0
+        // 4. Vérifier que la case cliquée est bien un 0
         if (grid[exR][exC].count === 0) {
             valid = true;
         }
