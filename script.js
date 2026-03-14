@@ -37,6 +37,21 @@ const zoomInBtn = document.getElementById("zoomIn");
 const zoomOutBtn = document.getElementById("zoomOut");
 
 /***********************
+* SMILEY MOUSE EVENTS
+***********************/
+document.addEventListener("mousedown", (e) => {
+    if (e.button === 0 && e.target.closest("#board") && !gameOver) {
+        smiley.textContent = "😮";
+    }
+});
+
+document.addEventListener("mouseup", (e) => {
+    if (e.button === 0 && !gameOver) {
+        smiley.textContent = "🙂";
+    }
+});
+
+/***********************
 * GAME STATE
 ***********************/
 let zoom = 1;
