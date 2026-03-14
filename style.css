@@ -40,7 +40,7 @@ body {
   text-align: center;
 }
 
-#smiley, #openOptions {
+#smiley, #openOptions, #invertClick, #zoomIn, #zoomOut {
   font-size: 22px;
   border: 2px outset #fff;
   background: #c0c0c0;
