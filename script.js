@@ -13,7 +13,9 @@ tap: "reveal",
 doubleTap: "flag",
 tripleTap: "chord",
 longPress: null
-}
+},
+// Inverse les actions clique gauche / clic droit
+invertClicks: false
 };
 
 loadSettings();
@@ -35,6 +37,7 @@ const closeWinBtn = document.getElementById("closeWin");
 
 const zoomInBtn = document.getElementById("zoomIn");
 const zoomOutBtn = document.getElementById("zoomOut");
+const invertClickBtn = document.getElementById("invertClick");
 
 /***********************
 * SMILEY MOUSE EVENTS
@@ -143,6 +146,21 @@ function updateZoom() {
   boardEl.style.transformOrigin = "top left";
 }
 
+function updateInvertClickButton() {
+  invertClickBtn.textContent = settings.invertClicks ? "🔁" : "⇄";
+  invertClickBtn.title = settings.invertClicks
+    ? "Clic gauche = drapeau, clic droit = révéler"
+    : "Clic gauche = révéler, clic droit = drapeau";
+}
+
+invertClickBtn.onclick = () => {
+  settings.invertClicks = !settings.invertClicks;
+  updateInvertClickButton();
+  saveSettings();
+};
+
+updateInvertClickButton();
+
 
 /***********************
 * PRESETS
@@ -226,11 +244,11 @@ el.addEventListener("mouseup", () => {
     clearHighlights();
 });
 
-el.addEventListener("click", () => handleAction("reveal", r, c));
+el.addEventListener("click", () => handleAction(settings.invertClicks ? "flag" : "reveal", r, c));
 
 el.addEventListener("contextmenu", e => {
-e.preventDefault();
-handleAction("flag", r, c);
+  e.preventDefault();
+  handleAction(settings.invertClicks ? "reveal" : "flag", r, c);
 });
 
 el.addEventListener("touchstart", () => {
@@ -521,6 +539,7 @@ if (!saved) return;
 const parsed = JSON.parse(saved);
 Object.assign(settings.sound, parsed.sound);
 Object.assign(settings.gestures, parsed.gestures);
+if (typeof parsed.invertClicks === "boolean") settings.invertClicks = parsed.invertClicks;
 }
 
 function applyGestureProfile(profile) {
