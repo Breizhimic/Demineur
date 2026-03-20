@@ -31,6 +31,11 @@ body {
   border-bottom: 2px solid #404040;
 }
 
+#top-controls button.active {
+  background: #ffed99;
+  border-color: #ffcc00;
+}
+
 .counter {
   background: black;
   color: red;

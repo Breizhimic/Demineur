@@ -38,6 +38,7 @@ const closeWinBtn = document.getElementById("closeWin");
 const zoomInBtn = document.getElementById("zoomIn");
 const zoomOutBtn = document.getElementById("zoomOut");
 const invertClickBtn = document.getElementById("invertClick");
+const flagModeBtn = document.getElementById("flagMode");
 
 /***********************
 * SMILEY MOUSE EVENTS
@@ -65,6 +66,7 @@ let firstClick = true;
 let timer = null;
 let time = 0;
 let gameOver = false; // added flag to prevent actions after end
+let flagMode = false; // new mode: all clics place drapeau sauf chord
 
 const DENSITY = 0.2;
 
@@ -153,13 +155,25 @@ function updateInvertClickButton() {
     : "Clic gauche = révéler, clic droit = drapeau";
 }
 
+function updateFlagModeButton() {
+  flagModeBtn.textContent = "🚩";
+  flagModeBtn.title = flagMode ? "Mode drapeau activé" : "Mode drapeau désactivé";
+  flagModeBtn.classList.toggle("active", flagMode);
+}
+
 invertClickBtn.onclick = () => {
   settings.invertClicks = !settings.invertClicks;
   updateInvertClickButton();
   saveSettings();
 };
 
+flagModeBtn.onclick = () => {
+  flagMode = !flagMode;
+  updateFlagModeButton();
+};
+
 updateInvertClickButton();
+updateFlagModeButton();
 
 
 /***********************
@@ -279,10 +293,20 @@ tapCount = 0;
 }
 
 function handleAction(action, r, c) {
-clearHighlights();
-if (action === "reveal") handleReveal(r, c);
-if (action === "flag") toggleFlag(r, c);
-if (action === "chord") chord(r, c);
+  clearHighlights();
+
+  if (flagMode && action !== "chord") {
+    const cell = grid[r][c];
+    if (cell && cell.revealed && cell.count > 0) {
+      action = "chord";
+    } else {
+      action = "flag"; // force drapeau en mode drapeau
+    }
+  }
+
+  if (action === "reveal") handleReveal(r, c);
+  if (action === "flag") toggleFlag(r, c);
+  if (action === "chord") chord(r, c);
 }
 
 function clearHighlights() {
