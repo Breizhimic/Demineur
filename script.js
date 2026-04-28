@@ -492,6 +492,12 @@ function toggleFlag(r, c) {
   const cell = grid[r][c];
   if (cell.revealed || gameOver) return;
 
+  // Bloquer si toutes les mines sont déjà drapeautées et qu'on essaie d'en ajouter un de plus
+  if (!cell.flagged && flags >= mines) {
+    showToast("⚠️ Plus de drapeaux disponibles !");
+    return;
+  }
+
   // Premier drapeau : placer les mines maintenant en forçant une mine sur cette case
   if (firstClick) {
     placeMinesWithFlag(r, c);
@@ -501,12 +507,6 @@ function toggleFlag(r, c) {
     }, 1000);
     firstClick = false;
     statusMsg.textContent = `🎯 ${mines} mines — bonne chance !`;
-  }
-
-  // Bloquer si toutes les mines sont déjà drapeautées et qu'on essaie d'en ajouter un de plus
-  if (!cell.flagged && flags >= mines) {
-    showToast("⚠️ Plus de drapeaux disponibles !");
-    return;
   }
 
   saveSnapshot();
