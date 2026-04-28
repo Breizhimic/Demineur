@@ -8,6 +8,7 @@
 const STORAGE_KEY      = "demineurSettings";
 const STATS_KEY        = "demineurStats";
 const LEADERBOARD_KEY  = "demineurLeaderboard";
+const GAME_KEY         = "demineurSavedGame";
 
 /* ===== DEFAULT SETTINGS ===== */
 const settings = {
@@ -259,6 +260,7 @@ function init() {
   time = 0; flags = 0; firstClick = true; gameOver = false;
   undoStack = []; redoStack = [];
   updateUndoRedoBtns();
+  localStorage.removeItem(GAME_KEY); // Effacer toute sauvegarde précédente
 
   timeCounterEl.textContent  = "000";
   mineCounterEl.textContent  = mines.toString().padStart(3, "0");
@@ -897,6 +899,87 @@ function loadLeaderboard() {
   } catch(e) {}
 }
 
+/* ===== GAME STATE PERSISTENCE ===== */
+function saveGame() {
+  // Ne sauvegarder que si la partie est en cours (pas avant le 1er clic, pas après game over)
+  if (firstClick || gameOver) {
+    localStorage.removeItem(GAME_KEY);
+    return;
+  }
+  const data = {
+    rows, cols, mines, time, flags,
+    grid: grid.map(row => row.map(cell => ({
+      isMine: cell.isMine,
+      revealed: cell.revealed,
+      flagged: cell.flagged,
+      count: cell.count
+    })))
+  };
+  localStorage.setItem(GAME_KEY, JSON.stringify(data));
+}
+
+function loadGame() {
+  try {
+    const raw = localStorage.getItem(GAME_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (!data.grid || !data.rows || !data.cols) return false;
+
+    rows = data.rows; cols = data.cols; mines = data.mines;
+    currentMines = mines;
+    time = data.time || 0;
+    flags = data.flags || 0;
+    firstClick = false;
+    gameOver = false;
+
+    clearInterval(timer);
+    boardEl.innerHTML = "";
+    boardEl.style.gridTemplateColumns = `repeat(${cols}, 28px)`;
+    grid = [];
+
+    for (let r = 0; r < rows; r++) {
+      grid[r] = [];
+      for (let c = 0; c < cols; c++) {
+        const s = data.grid[r][c];
+        const cell = {
+          isMine: s.isMine, revealed: s.revealed,
+          flagged: s.flagged, count: s.count,
+          el: document.createElement("div")
+        };
+        cell.el.className = "cell";
+        boardEl.appendChild(cell.el);
+        grid[r][c] = cell;
+        renderCell(r, c);
+        attachEvents(r, c);
+      }
+    }
+
+    mineCounterEl.textContent = (mines - flags).toString().padStart(3, "0");
+    timeCounterEl.textContent = time.toString().padStart(3, "0");
+    smiley.textContent = "🙂";
+    statusMsg.textContent = `↩ Partie restaurée — ${mines} mines`;
+
+    // Relancer le chrono
+    timer = setInterval(() => {
+      time++;
+      timeCounterEl.textContent = Math.min(time, 999).toString().padStart(3, "0");
+    }, 1000);
+
+    updateZoom();
+    undoStack = []; redoStack = [];
+    updateUndoRedoBtns();
+    updateSessionInfo();
+    showToast("↩ Partie précédente restaurée !");
+    return true;
+  } catch(e) {
+    localStorage.removeItem(GAME_KEY);
+    return false;
+  }
+}
+
+// Sauvegarder la partie quand l'utilisateur quitte la page
+window.addEventListener("beforeunload", saveGame);
+
 function applyGestureProfile(profile) {
   if (profile === "profile1") {
     settings.gestures = { tap: "reveal", doubleTap: "flag", tripleTap: "chord", longPress: null };
@@ -910,6 +993,8 @@ function applyGestureProfile(profile) {
 }
 
 /* ===== START ===== */
-// Select default preset
-document.querySelector(".preset-btn[data-mines='50']")?.classList.add("selected");
-startPreset(50);
+// Tenter de restaurer la partie en cours, sinon lancer un preset par défaut
+if (!loadGame()) {
+  document.querySelector(".preset-btn[data-mines='50']")?.classList.add("selected");
+  startPreset(50);
+}
