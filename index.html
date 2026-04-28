@@ -2,76 +2,229 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Démineur</title>
+  <title>💥 Démineur — Le Minesweeper Ultime</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+  <!-- SEO -->
+  <meta name="description" content="Démineur moderne et gratuit : statistiques détaillées, classement local, undo/redo pour apprendre, export/import de grilles. Jouez en ligne sans inscription !">
+  <meta name="keywords" content="démineur, minesweeper, jeu, puzzle, stratégie, gratuit, en ligne, statistiques, classement">
+  <meta name="author" content="breizhimic">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://breizhimic.github.io/demineur/">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="💥 Démineur — Le Minesweeper Ultime">
+  <meta property="og:description" content="Démineur moderne avec statistiques, classement local, undo/redo, et plus. Gratuit, sans pub, sans inscription.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://breizhimic.github.io/demineur/">
+  <meta property="og:image" content="https://breizhimic.github.io/demineur/og-image.png">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="💥 Démineur — Le Minesweeper Ultime">
+  <meta name="twitter:description" content="Statistiques, classement local, undo/redo et bien plus. Le meilleur démineur du web !">
+
+  <!-- JSON-LD Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Démineur",
+    "description": "Démineur moderne et gratuit avec statistiques, classement local et undo/redo.",
+    "url": "https://breizhimic.github.io/demineur/",
+    "applicationCategory": "GameApplication",
+    "operatingSystem": "Any",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+  }
+  </script>
+
+  <!-- Favicon SVG animé -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>💣</text></svg>">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Bebas+Neue&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div id="game">
-  <div id="top-controls">
-    <button id="openOptions">⚙️</button>
-    <button id="invertClick" title="Inverser clics">⇄</button>
-    <button id="flagMode" title="Mode drapeau">🚩</button>
-    <button id="zoomIn">➕</button>
-    <button id="zoomOut">➖</button>
-  </div>
-  <div id="top-bar">
-    <div class="counter" id="mineCounter">000</div>
-    <button id="smiley">🙂</button>
-    <div class="counter" id="timeCounter">000</div>
-  </div>
+<div id="app">
 
-  <div id="presets">
-    <button data-mines="10">10</button>
-    <button data-mines="25">25</button>
-    <button data-mines="50">50</button>
-    <button data-mines="100">100</button>
-    <button data-mines="250">250</button>
-    <button data-mines="500">500</button>
-    <button data-mines="999">999</button>
-  </div>
+  <!-- HEADER -->
+  <header id="header">
+    <div id="header-left">
+      <span id="logo">💣 DÉMINEUR</span>
+    </div>
+    <nav id="header-nav">
+      <button class="nav-btn" id="btnStats" title="Statistiques">📊 Stats</button>
+      <button class="nav-btn" id="btnLeaderboard" title="Classement">🏆 Scores</button>
+      <button class="nav-btn" id="openOptions" title="Options">⚙️ Options</button>
+    </nav>
+  </header>
 
-  <div id="board-container">
-    <div id="board"></div>
-  </div>
+  <!-- GAME ZONE -->
+  <main id="game">
+
+    <!-- TOOLBAR -->
+    <div id="toolbar">
+      <div class="tool-group">
+        <button class="tool-btn" id="undoBtn" title="Annuler (Ctrl+Z)" disabled>↩ Undo</button>
+        <button class="tool-btn" id="redoBtn" title="Rétablir (Ctrl+Y)" disabled>↪ Redo</button>
+      </div>
+      <div class="tool-group">
+        <button class="tool-btn" id="invertClick" title="Inverser clics">⇄ Clics</button>
+        <button class="tool-btn" id="flagMode" title="Mode drapeau">🚩 Drapeau</button>
+      </div>
+      <div class="tool-group">
+        <button class="tool-btn" id="zoomIn">🔍+</button>
+        <button class="tool-btn" id="zoomOut">🔍−</button>
+      </div>
+      <div class="tool-group">
+        <button class="tool-btn" id="exportBtn" title="Exporter la grille">⬇ Export</button>
+        <button class="tool-btn" id="importBtn" title="Importer une grille">⬆ Import</button>
+        <input type="file" id="importFile" accept=".json" style="display:none">
+      </div>
+    </div>
+
+    <!-- TOP BAR -->
+    <div id="top-bar">
+      <div class="hud-block">
+        <div class="hud-label">MINES</div>
+        <div class="counter" id="mineCounter">000</div>
+      </div>
+      <div id="center-controls">
+        <button id="smiley">🙂</button>
+        <div id="presets">
+          <button class="preset-btn" data-mines="10">10</button>
+          <button class="preset-btn" data-mines="25">25</button>
+          <button class="preset-btn" data-mines="50">50</button>
+          <button class="preset-btn" data-mines="100">100</button>
+          <button class="preset-btn" data-mines="250">250</button>
+          <button class="preset-btn" data-mines="500">500</button>
+          <button class="preset-btn" data-mines="999">999</button>
+        </div>
+      </div>
+      <div class="hud-block">
+        <div class="hud-label">TEMPS</div>
+        <div class="counter" id="timeCounter">000</div>
+      </div>
+    </div>
+
+    <!-- BOARD -->
+    <div id="board-container">
+      <div id="board"></div>
+    </div>
+
+    <!-- STATUS BAR -->
+    <div id="status-bar">
+      <span id="statusMsg">Cliquez sur une case pour commencer</span>
+      <span id="sessionInfo"></span>
+    </div>
+
+  </main>
+
 </div>
 
-<div id="optionsModal" class="modal hidden">
+<!-- ===== MODALS ===== -->
+
+<!-- OPTIONS -->
+<div id="optionsModal" class="modal hidden" role="dialog" aria-label="Options">
   <div class="modal-content">
-    <h2>Options</h2>
-
+    <div class="modal-header">
+      <h2>⚙️ Options</h2>
+      <button class="modal-close" id="closeOptions">✕</button>
+    </div>
     <fieldset>
-      <legend>Son</legend>
-      <label><input type="checkbox" id="soundEnabled"> Activer le son</label><br>
-      Volume <input type="range" id="soundVolume" min="0" max="100">
+      <legend>🔊 Son</legend>
+      <label class="toggle-row"><input type="checkbox" id="soundEnabled"> Activer le son</label>
+      <label class="slider-row">Volume <input type="range" id="soundVolume" min="0" max="100"></label>
     </fieldset>
-
     <fieldset>
-      <legend>Grille personnalisée</legend>
-      <label>Lignes <input type="number" id="optRows" value="16"></label>
-      <label>Colonnes <input type="number" id="optCols" value="16"></label>
-      <label>Bombes <input type="number" id="optMines" value="40"></label>
-      <button id="startCustom">Démarrer</button>
+      <legend>📐 Grille personnalisée</legend>
+      <div class="form-grid">
+        <label>Lignes <input type="number" id="optRows" value="16" min="4" max="50"></label>
+        <label>Colonnes <input type="number" id="optCols" value="16" min="4" max="80"></label>
+        <label>Bombes <input type="number" id="optMines" value="40" min="1"></label>
+      </div>
+      <button class="btn-primary" id="startCustom">▶ Démarrer</button>
     </fieldset>
-
     <fieldset>
-      <legend>Gestes mobiles</legend>
-      <label><input type="radio" name="gestures" value="profile1"> Tap / Double tap / Triple tap</label><br>
-      <label><input type="radio" name="gestures" value="profile2"> Tap / Appui long / Double tap</label>
+      <legend>📱 Gestes mobiles</legend>
+      <label class="radio-row"><input type="radio" name="gestures" value="profile1"> Tap / Double tap / Triple tap</label>
+      <label class="radio-row"><input type="radio" name="gestures" value="profile2"> Tap / Appui long / Double tap</label>
     </fieldset>
-
-    <button id="closeOptions">Fermer</button>
+    <fieldset>
+      <legend>🎨 Thème</legend>
+      <div class="theme-picker">
+        <button class="theme-btn active" data-theme="classic" title="Classique">🖥️</button>
+        <button class="theme-btn" data-theme="dark" title="Sombre">🌙</button>
+        <button class="theme-btn" data-theme="retro" title="Rétro">👾</button>
+        <button class="theme-btn" data-theme="nature" title="Nature">🌿</button>
+      </div>
+    </fieldset>
+    <button class="btn-secondary" id="closeOptions2">Fermer</button>
   </div>
 </div>
 
-<div id="winModal" class="modal hidden">
+<!-- WIN -->
+<div id="winModal" class="modal hidden" role="dialog" aria-label="Victoire">
+  <div class="modal-content win-content">
+    <div class="win-emoji">🎉</div>
+    <h2>Victoire !</h2>
+    <div id="winDetails"></div>
+    <div class="win-actions">
+      <button class="btn-primary" id="closeWin">▶ Rejouer</button>
+      <button class="btn-secondary" id="winShare">📤 Partager</button>
+    </div>
+  </div>
+</div>
+
+<!-- GAME OVER -->
+<div id="loseModal" class="modal hidden" role="dialog" aria-label="Perdu">
+  <div class="modal-content lose-content">
+    <div class="lose-emoji">💥</div>
+    <h2>Boom !</h2>
+    <div id="loseDetails"></div>
+    <div class="win-actions">
+      <button class="btn-primary" id="closeLose">↩ Réessayer</button>
+    </div>
+  </div>
+</div>
+
+<!-- STATISTIQUES -->
+<div id="statsModal" class="modal hidden" role="dialog" aria-label="Statistiques">
+  <div class="modal-content stats-content">
+    <div class="modal-header">
+      <h2>📊 Statistiques</h2>
+      <button class="modal-close" id="closeStats">✕</button>
+    </div>
+    <div id="statsBody"></div>
+    <button class="btn-danger" id="resetStats">🗑 Réinitialiser</button>
+  </div>
+</div>
+
+<!-- LEADERBOARD -->
+<div id="leaderboardModal" class="modal hidden" role="dialog" aria-label="Classement">
   <div class="modal-content">
-    <h2>Bravo !</h2>
-    <button id="closeWin">OK</button>
+    <div class="modal-header">
+      <h2>🏆 Classement Local</h2>
+      <button class="modal-close" id="closeLeaderboard">✕</button>
+    </div>
+    <div id="leaderboardFilters">
+      <button class="filter-btn active" data-filter="all">Tous</button>
+      <button class="filter-btn" data-filter="10">10 mines</button>
+      <button class="filter-btn" data-filter="25">25</button>
+      <button class="filter-btn" data-filter="50">50</button>
+      <button class="filter-btn" data-filter="100">100</button>
+    </div>
+    <div id="leaderboardBody"></div>
+    <button class="btn-danger" id="clearLeaderboard">🗑 Effacer le classement</button>
   </div>
 </div>
+
+<!-- UNDO TOOLTIP -->
+<div id="undoToast" class="toast hidden"></div>
 
 <script src="script.js"></script>
 </body>
