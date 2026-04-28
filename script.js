@@ -491,6 +491,24 @@ function reveal(r, c) {
 function toggleFlag(r, c) {
   const cell = grid[r][c];
   if (cell.revealed || gameOver) return;
+
+  // Premier drapeau : placer les mines maintenant en forçant une mine sur cette case
+  if (firstClick) {
+    placeMinesWithFlag(r, c);
+    timer = setInterval(() => {
+      time++;
+      timeCounterEl.textContent = Math.min(time, 999).toString().padStart(3, "0");
+    }, 1000);
+    firstClick = false;
+    statusMsg.textContent = `🎯 ${mines} mines — bonne chance !`;
+  }
+
+  // Bloquer si toutes les mines sont déjà drapeautées et qu'on essaie d'en ajouter un de plus
+  if (!cell.flagged && flags >= mines) {
+    showToast("⚠️ Plus de drapeaux disponibles !");
+    return;
+  }
+
   saveSnapshot();
   cell.flagged = !cell.flagged;
   cell.el.textContent = cell.flagged ? "🚩" : "";
@@ -557,6 +575,32 @@ function placeMines(exR, exC) {
 
     if (grid[exR][exC].count === 0) valid = true;
   }
+}
+
+
+// Variante de placeMines pour quand le premier clic est un drapeau :
+// la case drapeautée DOIT être une mine, les autres mines sont placées aléatoirement.
+function placeMinesWithFlag(flagR, flagC) {
+  // Reset
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) { grid[r][c].isMine = false; grid[r][c].count = 0; }
+
+  // Forcer une mine sur la case drapeautée
+  grid[flagR][flagC].isMine = true;
+  let placed = 1;
+
+  // Placer le reste des mines aléatoirement (sans contrainte de zone safe)
+  while (placed < mines) {
+    const r = Math.floor(Math.random() * rows);
+    const c = Math.floor(Math.random() * cols);
+    if (r === flagR && c === flagC) continue;
+    if (!grid[r][c].isMine) { grid[r][c].isMine = true; placed++; }
+  }
+
+  // Calculer les comptes
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++)
+      grid[r][c].count = neighbors(r, c).filter(([nr, nc]) => grid[nr][nc].isMine).length;
 }
 
 function neighbors(r, c) {
